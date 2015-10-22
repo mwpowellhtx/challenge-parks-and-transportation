@@ -1,6 +1,12 @@
 
 https://app.devdraft.com/#!/workspace/93170d71-9356-4283-ac5d-e22f91a500c0
 
+Start Date: 10/22/2015 9:00 PM
+
+Enjoy theme parks? Put your analytic skills to the test by solving problems relating to time and scheduling.
+
+Author - "We've enhanced our algorithms for matching you to great companies.  Connects will be more relevant than ever!"
+
 10-22 Challenge: Win Self Balancing Hoverboard!
 
 Challenge will launch on Thursday, October 22 at 6pm PDT. Gear up!
