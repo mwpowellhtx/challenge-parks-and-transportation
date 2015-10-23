@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThemeParkPlanner.Console", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transportation.Console", "Transportation.Console\Transportation.Console.csproj", "{89314AD6-69A7-47A9-8847-DF2529ECA316}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScalabilityAndDesign.Console", "ScalabilityAndDesign.Console\ScalabilityAndDesign.Console.csproj", "{7628730E-5980-4936-806C-5DDC0B94AEB3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{89314AD6-69A7-47A9-8847-DF2529ECA316}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89314AD6-69A7-47A9-8847-DF2529ECA316}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89314AD6-69A7-47A9-8847-DF2529ECA316}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7628730E-5980-4936-806C-5DDC0B94AEB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7628730E-5980-4936-806C-5DDC0B94AEB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7628730E-5980-4936-806C-5DDC0B94AEB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7628730E-5980-4936-806C-5DDC0B94AEB3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
