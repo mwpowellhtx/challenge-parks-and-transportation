@@ -41,6 +41,8 @@ i-th attraction to the (i + 1)-th attraction, or, in the case of the last intege
 takes to walk from the last attraction to the first.  A guest walking in the opposite direction
 takes the same amount of time to walk between the attractions.
 
+# Note, I believe that the notation "the first line contains a single integer D (0 < D <= A)" is a misprint.
+# Certainly the values in the space-separated list ought to be fact-checked as well.
 The next line contains the integer Q (0 <= Q < 100) representing the number of queries asked by
 simulated users.  2Q lines follow, meant to be read in groups of 2.  In each group of two lines,
 the first line contains a single integer D (0 < D <= A) that represents how many attractions the

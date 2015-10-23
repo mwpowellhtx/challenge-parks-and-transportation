@@ -3,15 +3,27 @@ Solution Analysis
 
 You solved the challenge. Now imagine that you need to present your solution to your development team. How would you describe your approach?
 
+Basically the problem decomposes like a tree algorithm with left/right, min(a,b), etc, choices being made at every turn. These are done in a functional manner so that the end result: least distance, is calculated without needing to do much extra work than simply iterating a collection of items.
+
 
 
 What is the time complexity of your solution?
 
+O(n): basically for the time cost of iterating one (or several) lists of items.
 
 
 
 What is the space compexity of your solution?
 
+O(n): the collections contributing to time complexity are also contributing to space complexity.
 
 
 
+Answer Submitted
+
+Your answer has been successfully submitted on Fri Oct 23 2015 13:18:34 GMT-0400 (Eastern Standard Time). Please make sure to submit answers to all parts of the challenge that you complete in order to receive full scorecard.
+
+Your answer has been successfully submitted!
+Challenge: https://app.devdraft.com/workspace/93170d71-9356-4283-ac5d-e22f91a500c0
+Part: 0
+Confirmation number: 4cacf797-7e46-4e0b-9f2a-cb226f75915b
