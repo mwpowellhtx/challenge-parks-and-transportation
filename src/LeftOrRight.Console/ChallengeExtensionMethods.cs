@@ -1,6 +1,7 @@
-﻿namespace LeftOrRight
+﻿using Challenge.Core;
+
+namespace LeftOrRight
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -9,17 +10,6 @@
         public static int ParseInteger(this string text)
         {
             return int.Parse(text);
-        }
-
-        public static int VerifyValue(this int value, int expected)
-        {
-            // ReSharper disable once InvertIf
-            if (value != expected)
-            {
-                var message = string.Format("value {0} is not expected {1}", value, expected);
-                throw new ArgumentException(message, "value");
-            }
-            return value;
         }
 
         public static int VerifyTimesCount(this int value)
@@ -44,25 +34,6 @@
         {
             // Bear in mind (0, attractions.Count]
             return value.VerifyRange(0, attractions.Count - 1);
-        }
-
-        /// <summary>
-        /// Verifies the range of <paramref name="value"/> is greater than or equal to
-        /// <paramref name="min"/> and less than or equal to <paramref name="max"/>.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="min"></param>
-        /// <param name="max"></param>
-        /// <returns></returns>
-        private static int VerifyRange(this int value, int min, int max)
-        {
-            // ReSharper disable once InvertIf
-            if (value < min || value > max)
-            {
-                var message = string.Format("value {0} must be in the range ({1}, {2}]", value, min, max);
-                throw new ArgumentException(message, "value");
-            }
-            return value;
         }
 
         /// <summary>

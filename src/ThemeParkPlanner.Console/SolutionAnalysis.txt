@@ -3,13 +3,43 @@ Solution Analysis
 
 You solved the challenge. Now imagine that you need to present your solution to your development team. How would you describe your approach?
 
+The first part of this journey started with outlining the domain model: Attraction, ThemePark and Guest. The main choice here is to be client, customer focused. We could call rename Guest to Patron and convey this. Better than calling them User.
+
+The domain model knows how to read themselves from a TextReader, in single or in collection, as described in the file format.
+
+There are a couple of strategic elements that contribute to this approach.
+
+First is to be able to convert to and from time units of measure. We have two units of time in particular: hours and minutes. This is a fairly simple conversion to perform, but it is critical to the success of the approach.
+
+Second is to pad the Guest itinerary of Attractions with WaitTime signals. Literally this means that the Guest decides to wait for that particular hour. However, the primary use case is to attend the Attractions with as much frequency as possible.
+
+The key actor contributing to the success of the approach is the Visit. A Visit is responsible for coordinating between the Guest, ThemePark, and receiving one Desired itinerary permutation.
+
+Once the padding is complete, and with the Visit logic defined, the key is to permutate this itinerary in order to arrive at the best possible Visit. Achieving this result, there are two key properties.
+
+The first property is TimeInPark, which yields the actual time spent in the park, whether waiting or attending Attractions. The second property, upon which TimeInPark depends, is TimeMinutes, which calculates the right-most time relative to the ThemePark having opened its gates for business. If possible, the Guest EntryTimeMinutes is subtracted from TimeMinutes to arrive at the actual time spent in the park. If the Visit is unachievable for any reason, then Impossible is returned.
+
+After that it is a simple matter of reporting the result.
+
 
 
 What is the time complexity of your solution?
+
+Time complexity is a bit awkward to define. There are a lot of lists, but these are there for organizational purposes only. The key players are a dictionary of Attraction QueueTimes, which O(1), keyed on the hour. The second is that we Permutate the Guest itinerary of Desired attendance. For simple cases it's no worry, but or larger cases, start to worry, a lot: permutations are O(n*n!); yes, that's n times n-FACTORIAL. Best case, if we followed this approach, in the example, we might expect a given itinerary to represent N Attractions taken H at a time, where H is the number of hours the park is open. All that being said, it's good to be aware of the complexities, as I don't know of a better way around the issue.
 
 
 
 What is the space compexity of your solution?
 
+Space is pretty straightforward. At any given turn we are using a lot of lists, collections, etc, so that is O(n).
 
 
+
+Answer Submitted
+
+Your answer has been successfully submitted on Sat Oct 24 2015 11:40:38 GMT-0400 (Eastern Standard Time). Please make sure to submit answers to all parts of the challenge that you complete in order to receive full scorecard.
+
+Your answer has been successfully submitted!
+Challenge: https://app.devdraft.com/workspace/93170d71-9356-4283-ac5d-e22f91a500c0
+Part: 1
+Confirmation number: d1c40d63-0adb-44d0-ac5d-f1520c9559e5

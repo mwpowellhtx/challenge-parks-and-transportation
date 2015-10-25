@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if PART0
+
+using System;
 using LeftOrRight;
 
 namespace Challenge.Core
@@ -85,11 +87,6 @@ namespace LeftOrRight
     
     public static class ChallengeExtensionMethods
     {
-        public static int ParseInteger(this string text)
-        {
-            return int.Parse(text);
-        }
-
         public static int VerifyValue(this int value, int expected)
         {
             // ReSharper disable once InvertIf
@@ -408,6 +405,7 @@ namespace LeftOrRight
     }
 }
 
+// ReSharper disable once CheckNamespace
 public class Test
 {
     public static void Main()
@@ -417,3 +415,5 @@ public class Test
         }
     }
 }
+
+#endif
