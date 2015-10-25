@@ -1,0 +1,617 @@
+﻿#if PART1
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using ThemeParkPlanner;
+
+namespace Challenge.Core
+{
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+
+    public static class CoreExtensionMethods
+    {
+        /// <summary>
+        /// Returns a parsed integer given <paramref name="text"/>.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public static int ParseInteger(this string text)
+        {
+            return int.Parse(text);
+        }
+
+        public static int VerifyValue(this int value, int expected)
+        {
+            // ReSharper disable once InvertIf
+            if (value != expected)
+            {
+                var message = string.Format("value {0} is not expected {1}", value, expected);
+                throw new ArgumentException(message, "value");
+            }
+            return value;
+        }
+
+        /// <summary>
+        /// Verifies the range of <paramref name="value"/> is greater than or equal to
+        /// <paramref name="min"/> and less than or equal to <paramref name="max"/>.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        public static int VerifyRange(this int value, int min, int max)
+        {
+            if (value >= min && value <= max) return value;
+            var message = string.Format("value {0} must be in the range ({1}, {2}]", value, min, max);
+            throw new ArgumentException(message, "value");
+        }
+
+        public static IEnumerable<T> TrimRight<T>(this IEnumerable<T> values, T value)
+            where T : IComparable
+        {
+            var result = new List<T>();
+
+            foreach (var x in from reversed in values.Reverse()
+                              where reversed.CompareTo(value) != 0 || result.Any()
+                              select reversed)
+            {
+                result.Insert(0, x);
+            }
+
+            return result;
+        }
+    }
+
+    public class Disposable : IDisposable
+    {
+        protected Disposable()
+        {
+        }
+
+        ~Disposable()
+        {
+            Dispose(false);
+        }
+
+        private bool _disposed;
+
+        protected bool IsDisposed
+        {
+            get { return _disposed; }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+        }
+
+        public void Dispose()
+        {
+            if (IsDisposed) return;
+            Dispose(true);
+            _disposed = true;
+        }
+    }
+
+    public abstract class ChallengeBase : Disposable
+    {
+        private readonly TextWriter _writer;
+
+        protected ChallengeBase(TextReader reader, TextWriter writer)
+        {
+            _writer = writer;
+            Initialize(reader);
+        }
+
+        private void Initialize(TextReader reader)
+        {
+            Read(reader);
+        }
+
+        protected abstract void Read(TextReader reader);
+
+        protected virtual string[] ReadLines(TextReader reader)
+        {
+            return reader.ReadToEndAsync().Result.Replace("\r\n", "\n").Split('\n');
+        }
+
+        protected abstract void Report(TextWriter writer);
+
+        protected abstract void Run();
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposing || IsDisposed) return;
+
+            Run();
+
+            Report(_writer);
+
+            base.Dispose(true);
+        }
+    }
+}
+
+namespace ThemeParkPlanner
+{
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.IO;
+    using System.Linq;
+    using Challenge.Core;
+
+    public static class Constants
+    {
+        public const int MinutesPerHour = 60;
+
+        public const int WaitTime = -1;
+    }
+
+    public static class ChallengeExtensionMethods
+    {
+        public static int VerifyAttractionCount(this int value)
+        {
+            // Bear in mind (0, 1000)
+            return value.VerifyRange(1, 999);
+        }
+
+        public static int VerifyParkHours(this int value)
+        {
+            // Bear in mind [1, 23]
+            return value.VerifyRange(1, 23);
+        }
+
+        public static int VerifyQueryCount(this int value)
+        {
+            // Bear in mind [0, 100)
+            return value.VerifyRange(0, 99);
+        }
+
+        public static int VerifyDesiredAttractions(this int value)
+        {
+            // Bear in mind [0, 20]
+            return value.VerifyRange(0, 20);
+        }
+
+        private static class Permutation<T>
+        {
+            public static readonly IEnumerable<IEnumerable<T>> DefaultPermutation = new List<IEnumerable<T>>();
+        }
+
+        public static IEnumerable<IEnumerable<T>> Permute<T>(this IEnumerable<T> values)
+        {
+            // ReSharper disable PossibleMultipleEnumeration
+            if (!values.Any())
+                return Permutation<T>.DefaultPermutation;
+
+            if (values.Count() == 1)
+                return new List<IEnumerable<T>> {values};
+
+            var results = new List<IEnumerable<T>>();
+
+            for (var i = 0; i < values.Count(); i++)
+            {
+                var x = new[] {values.ElementAt(i)};
+
+                var remaining = values.Take(i).Concat(values.Skip(i + 1));
+
+                results.AddRange(from p in remaining.Permute() select x.Concat(p));
+            }
+
+            return results;
+        }
+    }
+
+    public class Attraction
+    {
+        /// <summary>
+        /// Gets the QueueTimes indexed by the hour in which the time occurs.
+        /// </summary>
+        public IReadOnlyDictionary<int, int> QueueTimes { get; private set; }
+
+        public Attraction(IEnumerable<int> queueTimes)
+        {
+            // ReSharper disable PossibleMultipleEnumeration
+            QueueTimes = Enumerable.Range(0, queueTimes.Count())
+                .ToDictionary(i => i, queueTimes.ElementAt);
+        }
+
+        public bool TryGetQueueTime(int timeMinutes, out int queueTime)
+        {
+            var hour = timeMinutes/Constants.MinutesPerHour;
+            return QueueTimes.TryGetValue(hour, out queueTime);
+        }
+
+        private static Attraction ReadOne(TextReader reader)
+        {
+            var queueTimes = from x in reader.ReadLineAsync().Result.Split(' ')
+                select x.ParseInteger();
+            return new Attraction(queueTimes);
+        }
+
+        public static IEnumerable<Attraction> ReadAll(TextReader reader, int count)
+        {
+            while (count-- > 0)
+                yield return ReadOne(reader);
+        }
+    }
+
+    public interface IReadOnlyThemePark
+    {
+        int MaxHoursPerDay { get; }
+
+        int MaxMinutesPerDay { get; }
+
+        IReadOnlyCollection<Attraction> ReadOnlyAttractions { get; }
+    }
+
+    public class ThemePark : IReadOnlyThemePark
+    {
+        public int MaxHoursPerDay { get; private set; }
+
+        public int MaxMinutesPerDay
+        {
+            get { return MaxHoursPerDay * Constants.MinutesPerHour; }
+        }
+
+        public List<Attraction> Attractions { get; private set; }
+
+        private IReadOnlyCollection<Attraction> _readOnlyAttractions;
+
+        public IReadOnlyCollection<Attraction> ReadOnlyAttractions
+        {
+            get
+            {
+                return _readOnlyAttractions ?? (_readOnlyAttractions
+                    = new ReadOnlyCollection<Attraction>(Attractions));
+            }
+        }
+
+        public ThemePark(IEnumerable<Attraction> attractions, int maxHoursPerDay)
+        {
+            Attractions = attractions.ToList();
+            MaxHoursPerDay = maxHoursPerDay;
+        }
+
+        public List<Guest> Guests { get; private set; }
+
+        public static ThemePark Read(TextReader reader)
+        {
+            var values = from x in reader.ReadLineAsync().Result.Split(' ')
+                         select x.ParseInteger();
+
+            // ReSharper disable once PossibleMultipleEnumeration
+            var attractionCount = values.ElementAt(0);
+
+            // ReSharper disable once PossibleMultipleEnumeration
+            var maxHoursPerDay = values.ElementAt(1);
+
+            var attractions = Attraction.ReadAll(reader, attractionCount).ToList();
+
+            var result = new ThemePark(attractions, maxHoursPerDay);
+
+            var queryCount = reader.ReadLineAsync().Result.ParseInteger();
+
+            result.Guests = Guest.ReadAll(reader, queryCount, result).ToList();
+
+            return result;
+        }
+    }
+    public class Visit
+    {
+        private readonly Guest _guest;
+
+        private readonly IReadOnlyThemePark _themePark;
+
+        private readonly List<int> _desired;
+
+        public IEnumerable<int> Desired
+        {
+            get { return _desired; }
+        }
+
+        public Visit(Guest guest, IReadOnlyThemePark themePark, IEnumerable<int> desired)
+        {
+            _guest = guest;
+            _themePark = themePark;
+            _desired = desired.ToList();
+        }
+
+        public int TimeInPark
+        {
+            get
+            {
+                var timeMinutes = TimeMinutes;
+
+                return timeMinutes > _themePark.MaxMinutesPerDay
+                    ? Impossible
+                    : (timeMinutes - _guest.EntryTimeMinutes);
+            }
+        }
+
+        private int? _timeMinutes;
+
+        private int TimeMinutes
+        {
+            get { return (_timeMinutes ?? (_timeMinutes = CalculateTime())).Value; }
+        }
+
+        private int CalculateTime()
+        {
+            const int minutesPerHour = Constants.MinutesPerHour;
+            const int waitTime = Constants.WaitTime;
+
+            var trimmed = Desired.TrimRight(waitTime).ToArray();
+
+            var currentTime = _guest.EntryTimeMinutes;
+
+            for (var i = 0; i < trimmed.Length; i++)
+            {
+                var d = trimmed[i];
+
+                if (d == waitTime)
+                {
+                    var ceilingTime = (i + 1) * minutesPerHour;
+
+                    currentTime = Math.Max(ceilingTime, currentTime);
+
+                    continue;
+                }
+
+                // When the decision is not to wait, then attend the attractions as frequently as time permits.
+                var a = _themePark.ReadOnlyAttractions.ElementAt(d);
+
+                //var baseTime = entryTime > 0 ? (i*minutesPerHour + entryTime) : ((i + 1)*minutesPerHour);
+
+                int queueTime;
+
+                if (a.TryGetQueueTime(currentTime, out queueTime))
+                    currentTime += queueTime;
+            }
+
+            return currentTime;
+        }
+
+        private const int Impossible = int.MaxValue;
+
+        public bool IsImpossible()
+        {
+            return TimeInPark == Impossible;
+        }
+    }
+    public class Guest
+    {
+        private readonly IReadOnlyThemePark _themePark;
+
+        public int EntryTimeMinutes { get; private set; }
+
+        private List<int> _desired;
+
+        public List<int> Desired
+        {
+            get { return _desired; }
+            private set
+            {
+                _desired = value;
+
+                /* Remember that if there are gaps with the hours then we have some choices
+                 * which ones to prefer, and which spaces to meet otherwise. */
+
+                while (_desired.Count < _themePark.MaxHoursPerDay)
+                    _desired.Add(Constants.WaitTime);
+            }
+        }
+
+        private static IEnumerable<int> VerifyDistinct(IEnumerable<int> values)
+        {
+            // ReSharper disable PossibleMultipleEnumeration
+
+            var distinct = values.Distinct();
+
+            if (distinct.Count() == values.Count())
+                return distinct;
+
+            throw new ArgumentException("values are not all distinct", "values")
+            {
+                Data = { { "values", values } }
+            };
+        }
+
+        public Guest(int entryTimeMinutes, IReadOnlyThemePark themePark, IEnumerable<int> desired)
+        {
+            _themePark = themePark;
+            EntryTimeMinutes = entryTimeMinutes;
+            Desired = VerifyDistinct(desired).ToList();
+        }
+
+        public Visit BestPossibleVisit { get; private set; }
+
+        /// <summary>
+        /// Facilitates the Guest trying to visit the <see cref="_themePark"/>
+        /// Returns whether this is possible.
+        /// </summary>
+        /// <returns></returns>
+        public bool TryVisit()
+        {
+            var possible = Desired.Permute();
+
+            BestPossibleVisit = (from x in possible
+                                 let v = new Visit(this, _themePark, x)
+                                 orderby v.TimeInPark
+                                 select v).First();
+
+            return false;
+        }
+
+        private static void VerifyWithinParkHours(int entryTimeMinutes, int maxHoursPerDay)
+        {
+            /* For anything more involved than this, start looking into
+             * a proper dimensional analysis, units of measure solution. */
+
+            if (entryTimeMinutes < maxHoursPerDay * Constants.MinutesPerHour)
+                return;
+
+            throw new ArgumentException("Cannot enter park after hours")
+            {
+                Data =
+                {
+                    // Hello C# 6.0 nameof ! or in this case, Mono 4
+                    {"entryTimeMinutes", entryTimeMinutes},
+                    {"maxHoursPerDay", maxHoursPerDay}
+                }
+            };
+        }
+
+        private static Guest ReadOne(TextReader reader, IReadOnlyThemePark themePark)
+        {
+            var lines = new[]
+            {
+                reader.ReadLineAsync().Result,
+                reader.ReadLineAsync().Result,
+                reader.ReadLineAsync().Result,
+            };
+
+            // TODO: may check hours are not after park closed
+            var entryTimeMinutes = lines[0].ParseInteger();
+
+            VerifyWithinParkHours(entryTimeMinutes, themePark.MaxHoursPerDay);
+
+            var visitCount = lines[1].ParseInteger().VerifyDesiredAttractions();
+
+            var visits = from x in lines[2].Split(' ')
+                         select x.ParseInteger().VerifyRange(0, themePark.ReadOnlyAttractions.Count - 1);
+
+            // ReSharper disable once PossibleMultipleEnumeration
+            visits.Count().VerifyValue(visitCount);
+
+            // ReSharper disable once PossibleMultipleEnumeration
+            return new Guest(entryTimeMinutes, themePark, visits);
+        }
+
+        public static IEnumerable<Guest> ReadAll(TextReader reader, int count, IReadOnlyThemePark themePark)
+        {
+            while (count-- > 0)
+                yield return ReadOne(reader, themePark);
+        }
+
+        public void Report(TextWriter writer)
+        {
+            if (BestPossibleVisit.IsImpossible())
+                writer.WriteLine("IMPOSSIBLE");
+            else
+                writer.WriteLine(BestPossibleVisit.TimeInPark);
+        }
+    }
+
+    public class Planner : ChallengeBase
+    {
+        private ThemePark _themePark;
+
+        public Planner(TextReader reader, TextWriter writer)
+            : base(reader, writer)
+        {
+        }
+
+        protected override void Read(TextReader reader)
+        {
+            _themePark = ThemePark.Read(reader);
+        }
+
+        protected override void Run()
+        {
+            Action<Guest> tryVisit = g => g.TryVisit();
+            _themePark.Guests.ForEach(tryVisit);
+        }
+
+        protected override void Report(TextWriter writer)
+        {
+            Action<Guest> report = g => g.Report(writer);
+            _themePark.Guests.ForEach(report);
+        }
+    }
+}
+
+// ReSharper disable once CheckNamespace
+public class Test
+{
+#if DEVELOP
+
+    private static IEnumerable<string> TestCases
+    {
+        get
+        {
+            // Expected output:
+            // 75
+            // 50
+            // IMPOSSIBLE
+            yield return @"5 3
+30 60 75
+30 15 30
+30 45 60
+60 45 15
+99 62 99
+3
+0
+3
+0 1 2
+55
+1
+3
+119
+1
+4";
+
+            // Expected output:
+            // 75
+            // 50
+            // IMPOSSIBLE
+            yield return @"5 3
+30 60 75
+30 15 30
+30 45 60
+60 45 15
+99 62 99
+3
+0
+3
+0 1 2
+55
+1
+3
+119
+1
+4";
+        }
+    }
+
+#endif
+
+    public static void Main()
+    {
+
+#if DEVELOP
+
+        foreach (var testCase in TestCases)
+        {
+            using (var reader = new StringReader(testCase))
+            {
+                using (new Planner(reader, Console.Out))
+                {
+                }
+            }
+        }
+
+#else
+
+            using (new Planner(Console.In, Console.Out))
+            {
+            }
+
+#endif
+
+    }
+}
+
+#endif

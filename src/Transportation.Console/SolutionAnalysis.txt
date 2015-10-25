@@ -1,0 +1,29 @@
+
+What did you change to fix the code?
+
+I redesigned with a couple of key strategies in mind: testability, SOLID extensibility.
+
+Testability: the light rail app should accept any TextReader and TextWriter, regardless of its source, whether Console.In and Console.Out, or an in-memory test using StringReader.
+
+Instead of this mass of spaghetti code, the object responsibilities are much more cohesive and aligned with the goals of the company. It will be much easier to fold in additional requirements, cross-cutting business rules, and so forth.
+
+It should also be flexible as to when trips are queried that can fulfill a patron's request, and back-fill the schedule on an as needed basis.
+
+I also took the opportunity to refactor such useful utility methods into more logical extension method locations. These would ordinarily live in a core assembly common to the solution, useful throughout the business.
+
+
+
+Did you see any bad coding practices in the original code?
+
+See answer prior: lack of design for testability (solved), lack of adherence to SOLID design principles (also, solved). Now also better factored with extensibility, broad utility in mind.
+
+
+
+Answer Submitted
+
+Your answer has been successfully submitted on Sun Oct 25 2015 09:02:01 GMT-0400 (Eastern Standard Time). Please make sure to submit answers to all parts of the challenge that you complete in order to receive full scorecard.
+
+Your answer has been successfully submitted!
+Challenge: https://app.devdraft.com/workspace/93170d71-9356-4283-ac5d-e22f91a500c0
+Part: 2
+Confirmation number: 68e038b2-5178-4363-b583-5c8b36bd4294
