@@ -58,9 +58,10 @@ namespace Transportation
         /// <returns></returns>
         internal IEnumerable<int> GetStopIntervalsMinutes(Patron patron)
         {
+            // No need to subtract one here just pass the StopNumber through in either case.
             return patron.IsNorthbound
                 ? StopIntervalMinutes.Take(patron.StopNumber)
-                : StopIntervalMinutes.Skip(patron.StopNumber - 1);
+                : StopIntervalMinutes.Skip(patron.StopNumber);
         }
 
         // ReSharper disable SuggestBaseTypeForParameter
