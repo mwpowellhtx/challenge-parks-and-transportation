@@ -13,6 +13,7 @@ namespace ThemeParkPlanner
         {
             get
             {
+                ////TODO: does take a little longer than expected to complete: could look at a C++ solution instead
                 // Expected output:
                 // 176
                 yield return @"2 9

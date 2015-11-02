@@ -18,7 +18,8 @@ namespace Transportation
 
         private int? AlignStartTime(int minute)
         {
-            var times = from k in Entries.Keys where k < minute select k;
+            //TODO: may need to further align minute with the day-spanning clock
+            var times = from k in Entries.Keys where k <= minute select k;
             // ReSharper disable PossibleMultipleEnumeration
             return !times.Any() ? (int?) null : times.Last();
         }
